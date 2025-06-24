@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer components {
+  .plot-available {
+    @apply fill-green-500 hover:fill-green-600;
+  }
+  
+  .plot-booked {
+    @apply fill-yellow-500 hover:fill-yellow-600;
+  }
+  
+  .plot-agreement {
+    @apply fill-orange-500 hover:fill-orange-600;
+  }
+  
+  .plot-registration {
+    @apply fill-blue-500 hover:fill-blue-600;
+  }
+  
+  .plot-interactive {
+    @apply cursor-pointer transition-all duration-200 hover:brightness-110;
+  }
+}
