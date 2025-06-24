@@ -147,7 +147,7 @@ describe('Store Layout Management', () => {
     })
 
     it('should preserve existing plot statuses and bookings', () => {
-      const { updatePlotStatus, addBooking, updateProjectLayout } = useStore.getState()
+      const { updatePlotStatus, updateProjectLayout } = useStore.getState()
       
       // Book a plot first
       const booking = createMockBooking('John Doe', '1234567890')
@@ -191,7 +191,7 @@ describe('Store Layout Management', () => {
     })
 
     it('should not update if user is not manager', () => {
-      useStore.setState({ user: { id: '1', name: 'Viewer', role: 'viewer' } })
+      useStore.setState({ isManager: false })
       
       const { updateProjectLayout, projects } = useStore.getState()
       const originalProject = projects[0]
@@ -226,10 +226,20 @@ describe('Store Layout Management', () => {
   describe('selectProject with custom layouts', () => {
     beforeEach(() => {
       // Create multiple projects
-      const { createProject, createProjectWithLayout } = useStore.getState()
+      const { createProjectWithLayout } = useStore.getState()
       
-      // Simple project
-      createProject('Simple Project', 50)
+      // Simple project without custom layout will be created differently
+      useStore.setState({
+        projects: [
+          ...useStore.getState().projects,
+          {
+            id: 'simple-project-id',
+            name: 'Simple Project',
+            totalPlots: 50,
+            createdAt: new Date().toISOString()
+          }
+        ]
+      })
       
       // Custom layout project
       const plotDefinitions: PlotDefinition[] = [
