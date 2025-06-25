@@ -1,12 +1,22 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense, lazy } from 'react'
 import { Header } from './components/Header'
-import { Dashboard } from './components/Dashboard'
-import { PlotGrid } from './components/PlotGrid'
 import { Filters } from './components/Filters'
-import { AdminLogin } from './components/AdminLogin'
 import { StatusLegend } from './components/StatusLegend'
 import { useStore } from './hooks/useStore'
 import { adminApi } from './utils/api'
+
+// Lazy load heavy components for better performance
+const Dashboard = lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })))
+const PlotGrid = lazy(() => import('./components/PlotGrid').then(m => ({ default: m.PlotGrid })))
+const AdminLogin = lazy(() => import('./components/AdminLogin').then(m => ({ default: m.AdminLogin })))
+
+// Loading component
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center p-8">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    <span className="ml-2 text-gray-600">Loading...</span>
+  </div>
+)
 
 function App() {
   const [showAdminLogin, setShowAdminLogin] = useState(false)
@@ -55,7 +65,9 @@ function App() {
       
       <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Dashboard Stats */}
-        <Dashboard />
+        <Suspense fallback={<LoadingSpinner />}>
+          <Dashboard />
+        </Suspense>
         
         {/* Filters and Legend */}
         <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
@@ -73,12 +85,16 @@ function App() {
                 : 'View-only mode. Contact manager for bookings.'}
             </p>
           </div>
-          <PlotGrid isAdmin={isAdmin} />
+          <Suspense fallback={<LoadingSpinner />}>
+            <PlotGrid isAdmin={isAdmin} />
+          </Suspense>
         </div>
       </main>
       
       {showAdminLogin && (
-        <AdminLogin onLoginSuccess={handleAdminLogin} />
+        <Suspense fallback={<LoadingSpinner />}>
+          <AdminLogin onLoginSuccess={handleAdminLogin} />
+        </Suspense>
       )}
     </div>
   )

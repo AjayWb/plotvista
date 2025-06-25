@@ -17,7 +17,6 @@ export function ProjectManager() {
   const projects = useStore(state => state.projects)
   const currentProjectId = useStore(state => state.currentProjectId)
   const layout = useStore(state => state.layout)
-  const createProject = useStore(state => state.createProject)
   const createProjectWithLayout = useStore(state => state.createProjectWithLayout)
   const updateProjectLayout = useStore(state => state.updateProjectLayout)
   const selectProject = useStore(state => state.selectProject)

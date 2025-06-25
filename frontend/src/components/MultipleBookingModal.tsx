@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, Plus, Minus, AlertCircle, Check } from 'lucide-react'
+import { X, AlertCircle, Check } from 'lucide-react'
 import { useStore } from '../hooks/useStore'
 import { BookingInfo } from '../types'
 

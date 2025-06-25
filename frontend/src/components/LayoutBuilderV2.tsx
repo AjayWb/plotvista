@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { 
-  Grid, Ruler, AlertCircle, Check, X, 
-  Plus, Minus, Save, Zap, Edit3, Square
+  Grid, Ruler, AlertCircle, Check, 
+  Plus, Minus, Zap, Edit3, Square
 } from 'lucide-react'
 import { PlotDefinition } from '../types'
 import clsx from 'clsx'

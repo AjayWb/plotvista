@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, AlertTriangle, CheckCircle, MapPin, Ruler, Calendar, User, Phone } from 'lucide-react'
+import { X, AlertTriangle, CheckCircle, MapPin, Calendar, User, Phone } from 'lucide-react'
 import { Plot, PlotStatus, BookingInfo } from '../types'
 
 interface StatusChangeConfirmationModalProps {

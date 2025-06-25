@@ -14,6 +14,9 @@ interface AppStore {
   // Layout & Plots
   layout: Layout
   
+  // Authentication
+  user: { isAdmin: boolean; token?: string } | null
+  
   // Filters
   filters: FilterState
   setStatusFilter: (status: PlotStatus | 'all') => void
@@ -26,10 +29,14 @@ interface AppStore {
   selectProject: (projectId: string) => Promise<void>
   
   // Admin Actions (requires admin auth)
+  login: (password: string) => Promise<boolean>
+  createProject: (name: string) => Promise<void>
   createProjectWithLayout: (name: string, rows: number, cols: number, plotDefinitions: PlotDefinition[]) => Promise<void>
   updateProjectLayout: (rows: number, cols: number, plotDefinitions: PlotDefinition[]) => Promise<void>
   updatePlotStatus: (plotId: string, newStatus: PlotStatus, bookingInfo?: BookingInfo) => Promise<void>
   bookMultiplePlots: (plotIds: string[], bookingInfo: BookingInfo) => Promise<void>
+  addBooking: (plotId: string, bookingInfo: BookingInfo) => Promise<void>
+  removeBooking: (plotId: string, bookingIndex: number) => Promise<void>
   exportData: (projectId?: string) => Promise<any>
   
   // Computed
@@ -43,7 +50,8 @@ interface AppStore {
     percentageSold: number
   }
   
-  // Phone validation (simplified for API version)
+  // Phone validation
+  validatePhoneNumber: (phone: string) => boolean
   checkPhoneExistsInProject: (phone: string) => { exists: boolean; plots: string[] }
 }
 
@@ -72,6 +80,7 @@ export const useStore = create<AppStore>((set, get) => ({
   currentProjectId: null,
   layout: initialLayout,
   filters: initialFilters,
+  user: null,
 
   // Filter actions
   setStatusFilter: (status) => set(state => ({
@@ -119,7 +128,7 @@ export const useStore = create<AppStore>((set, get) => ({
             })) || [],
             lastUpdated: new Date()
           })),
-          createdAt: new Date(firstProject.created_at),
+          createdAt: new Date(firstProject.createdAt || firstProject.created_at),
           updatedAt: new Date()
         }
         
@@ -184,7 +193,7 @@ export const useStore = create<AppStore>((set, get) => ({
           })) || [],
           lastUpdated: new Date()
         })),
-        createdAt: new Date(project.created_at),
+        createdAt: new Date(project.createdAt || project.created_at),
         updatedAt: new Date()
       }
       
@@ -202,7 +211,41 @@ export const useStore = create<AppStore>((set, get) => ({
     }
   },
 
+  // Authentication
+  login: async (password: string) => {
+    try {
+      const response = await adminApi.login(password)
+      set({ 
+        user: { 
+          isAdmin: true, 
+          token: response.token 
+        } 
+      })
+      return true
+    } catch (error) {
+      console.error('Login failed:', error)
+      return false
+    }
+  },
+
   // Admin actions
+  createProject: async (name: string) => {
+    try {
+      const newProject = await adminApi.createProject(name)
+      
+      // Update projects list
+      set(state => ({
+        projects: [newProject, ...state.projects]
+      }))
+      
+      // Select the new project
+      await get().selectProject(newProject.id)
+    } catch (error) {
+      console.error('Failed to create project:', error)
+      throw error
+    }
+  },
+
   createProjectWithLayout: async (name: string, rows: number, cols: number, plotDefinitions: PlotDefinition[]) => {
     try {
       const layoutTemplate = { rows, cols, plotDefinitions }
@@ -271,6 +314,32 @@ export const useStore = create<AppStore>((set, get) => ({
     }
   },
 
+  addBooking: async (plotId: string, bookingInfo: BookingInfo) => {
+    try {
+      await adminApi.bookPlot(plotId, bookingInfo.name, bookingInfo.phone, 'booked')
+      
+      // Refresh data
+      await get().refreshData()
+    } catch (error) {
+      console.error('Failed to add booking:', error)
+      throw error
+    }
+  },
+
+  removeBooking: async (plotId: string, bookingIndex: number) => {
+    try {
+      // For now, we'll set the plot status back to available
+      // In a more complex system, we might need a specific API for removing bookings
+      await adminApi.updatePlotStatus(plotId, 'available')
+      
+      // Refresh data
+      await get().refreshData()
+    } catch (error) {
+      console.error('Failed to remove booking:', error)
+      throw error
+    }
+  },
+
   exportData: async (projectId?: string) => {
     try {
       return await adminApi.exportData(projectId)
@@ -328,6 +397,13 @@ export const useStore = create<AppStore>((set, get) => ({
       registration,
       percentageSold
     }
+  },
+
+  // Phone validation
+  validatePhoneNumber: (phone: string) => {
+    // Basic phone validation - can be extended as needed
+    const phoneRegex = /^[+]?[\d\s\-\(\)]{10,}$/
+    return phoneRegex.test(phone.trim())
   },
 
   // Simplified phone validation for API version

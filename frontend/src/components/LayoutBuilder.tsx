@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { 
-  Grid, Upload, AlertCircle, Check, X, 
+  Grid, Upload, AlertCircle, Check, 
   FileSpreadsheet, Plus, Minus, Save
 } from 'lucide-react'
 import { PlotDefinition } from '../types'

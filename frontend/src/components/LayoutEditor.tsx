@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { 
-  Grid, Plus, Minus, Save, Edit3, Trash2, 
-  MousePointer, Square, Copy, Move, RotateCw,
-  ChevronRight, Info, Maximize2, Package
+  Plus, Save, Edit3, Trash2, 
+  MousePointer, Square, Copy, RotateCw,
+  Info, Package
 } from 'lucide-react'
 import { PlotDefinition } from '../types'
 import clsx from 'clsx'

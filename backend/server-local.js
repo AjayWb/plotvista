@@ -3,9 +3,10 @@ const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
 const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
+const { validateEnvironment } = require('./validate-env');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 5000;
 
 // Initialize SQLite database
 const db = new sqlite3.Database('./plotvista.db');
@@ -13,6 +14,9 @@ const db = new sqlite3.Database('./plotvista.db');
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Serve frontend static files
+app.use(express.static('../frontend/dist'));
 
 // Create tables if they don't exist
 db.serialize(() => {
@@ -99,6 +103,19 @@ const requireAdmin = (req, res, next) => {
 };
 
 // ===== PUBLIC ROUTES =====
+
+// Admin login
+app.post('/api/admin/login', (req, res) => {
+  const { password } = req.body;
+  
+  if (password === ADMIN_PASSWORD) {
+    const token = uuidv4();
+    adminSessions.set(token, Date.now() + 24 * 60 * 60 * 1000);
+    res.json({ success: true, token });
+  } else {
+    res.status(401).json({ error: 'Invalid password' });
+  }
+});
 
 // Get all projects
 app.get('/api/projects', (req, res) => {
@@ -335,6 +352,26 @@ app.get('/api/admin/export', requireAdmin, (req, res) => {
     }
   });
 });
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'healthy', service: 'plotvista-backend' });
+});
+
+// Validate environment variables before starting
+const { missing, warnings, isValid } = validateEnvironment();
+
+if (!isValid) {
+  console.error('❌ Missing required environment variables:', missing.join(', '));
+  console.error('Please set these variables in your .env file or environment');
+  process.exit(1);
+}
+
+if (warnings.length > 0) {
+  console.warn('⚠️  Environment warnings:');
+  warnings.forEach(warning => console.warn(`   - ${warning}`));
+  console.warn('');
+}
 
 app.listen(PORT, () => {
   console.log(`

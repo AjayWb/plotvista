@@ -3,12 +3,16 @@
   "version": "1.0.0",
   "description": "PlotVista - Plot Management System",
   "scripts": {
-    "build": "npm run install:all && cd frontend && npm run build",
+    "build": "cd backend && npm install && cd ../frontend && npm install && npm run build -- --mode production",
     "start": "cd backend && node server-railway.js",
     "install:all": "cd backend && npm install && cd ../frontend && npm install",
     "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm run dev\""
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "http-proxy-middleware": "^3.0.5"
   }
 }

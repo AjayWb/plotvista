@@ -1,1 +1,0 @@
-# PlotVista Backend Application

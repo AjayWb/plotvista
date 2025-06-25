@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, Download, FileSpreadsheet, Calendar, Filter } from 'lucide-react'
+import { X, Download, FileSpreadsheet } from 'lucide-react'
 import { useStore } from '../hooks/useStore'
 import { Plot, Project, BookingInfo } from '../types'
 

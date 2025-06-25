@@ -23,7 +23,6 @@ export function LayoutManagementModal({ isOpen, onClose }: LayoutManagementModal
   const currentProjectId = useStore(state => state.currentProjectId)
   const projects = useStore(state => state.projects)
   const updateProjectLayout = useStore(state => state.updateProjectLayout)
-  const user = useStore(state => state.user)
 
   const currentProject = projects.find(p => p.id === currentProjectId)
 
@@ -98,7 +97,11 @@ export function LayoutManagementModal({ isOpen, onClose }: LayoutManagementModal
         updatedPlot[field] = value
       }
     } else {
-      updatedPlot[field] = value
+      if (field === 'plotNumber' || field === 'dimension') {
+        (updatedPlot[field] as string) = value as string
+      } else if (field === 'area' || field === 'row' || field === 'col') {
+        (updatedPlot[field] as number) = value as number
+      }
     }
 
     setEditedPlots(prev => ({
