@@ -44,21 +44,7 @@ app.get('/ready', async (req, res) => {
   }
 });
 
-// Cost monitoring endpoint for admins
-app.get('/api/admin/metrics', requireAdmin, (req, res) => {
-  const metrics = costMonitor.getMetrics();
-  const costEstimate = costMonitor.estimateMonthlyCost();
-  
-  res.json({
-    performance: metrics,
-    cost: costEstimate,
-    recommendations: {
-      cacheOptimization: metrics.cacheHitRatio < 70 ? 'Consider increasing cache TTL' : 'Cache performing well',
-      queryOptimization: metrics.dbQueriesPerRequest > 5 ? 'High DB queries per request - consider optimization' : 'DB queries optimized',
-      costAlert: costEstimate.estimatedCost !== '$0' ? 'Monitor usage to stay within free tier' : 'Within free tier limits'
-    }
-  });
-});
+// Cost monitoring endpoint will be defined after requireAdmin function
 
 // Security middleware
 app.use(helmet({
@@ -240,6 +226,22 @@ const requireAdmin = (req, res, next) => {
   adminSessions.set(token, Date.now() + 24 * 60 * 60 * 1000);
   next();
 };
+
+// Cost monitoring endpoint for admins
+app.get('/api/admin/metrics', requireAdmin, (req, res) => {
+  const metrics = costMonitor.getMetrics();
+  const costEstimate = costMonitor.estimateMonthlyCost();
+  
+  res.json({
+    performance: metrics,
+    cost: costEstimate,
+    recommendations: {
+      cacheOptimization: metrics.cacheHitRatio < 70 ? 'Consider increasing cache TTL' : 'Cache performing well',
+      queryOptimization: metrics.dbQueriesPerRequest > 5 ? 'High DB queries per request - consider optimization' : 'DB queries optimized',
+      costAlert: costEstimate.estimatedCost !== '$0' ? 'Monitor usage to stay within free tier' : 'Within free tier limits'
+    }
+  });
+});
 
 // Admin login
 app.post('/api/admin/login', (req, res) => {
