@@ -90,8 +90,15 @@ const adminLimiter = rateLimit({
 app.use('/api/admin/', adminLimiter);
 
 // CORS middleware
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'http://localhost:5001',
+  'http://localhost:3000',
+  'http://localhost:5173'
+].filter(Boolean);
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
+  origin: allowedOrigins.length > 0 ? allowedOrigins : '*',
   credentials: true,
   optionsSuccessStatus: 200, // Some legacy browsers choke on 204
 }));
