@@ -288,19 +288,60 @@ app.get('/api/projects', cacheMiddleware('data', 300000), async (req, res) => {
 
 app.post('/api/admin/projects', requireAdmin, async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name, layoutTemplate } = req.body;
     
     // Clear cache when creating new projects
     dataCache.clear();
     const id = uuidv4();
     
-    await pool.query(
-      'INSERT INTO projects (id, name) VALUES ($1, $2)',
-      [id, name]
-    );
+    const client = await pool.connect();
     
-    const result = await pool.query('SELECT * FROM projects WHERE id = $1', [id]);
-    res.json(result.rows[0]);
+    try {
+      await client.query('BEGIN');
+      
+      // Create project
+      await client.query(
+        'INSERT INTO projects (id, name) VALUES ($1, $2)',
+        [id, name]
+      );
+      
+      let totalPlots = 0;
+      
+      // If layoutTemplate provided, create plots
+      if (layoutTemplate && layoutTemplate.plotDefinitions) {
+        for (const plot of layoutTemplate.plotDefinitions) {
+          await client.query(`
+            INSERT INTO plots (id, project_id, plot_number, dimension, area, row, col, status)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, 'available')
+          `, [
+            uuidv4(),
+            id,
+            plot.plotNumber,
+            plot.dimension,
+            plot.area,
+            plot.row,
+            plot.col
+          ]);
+          totalPlots++;
+        }
+      }
+      
+      await client.query('COMMIT');
+      
+      const result = await client.query('SELECT * FROM projects WHERE id = $1', [id]);
+      const project = result.rows[0];
+      project.totalPlots = totalPlots;
+      project.layoutTemplate = layoutTemplate || null;
+      
+      res.json(project);
+      
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+    
   } catch (error) {
     console.error('Error creating project:', error);
     res.status(500).json({ error: 'Internal server error' });
